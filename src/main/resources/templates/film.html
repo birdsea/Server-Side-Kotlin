@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <title>DVD Rental - Film</title>
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+    <script>
+    // LiveReload
+    document.write(
+        '<script src="http://' +
+        (location.host || 'localhost').split(':')[0] +
+        ':35729/livereload.js?snipver=1"></' +
+        'script>'
+    )
+    </script>
+</head>
+<body>
+<br>
+<div class="screen_title"><b>Film List</b></div>
+<br>
+<table>
+    <thead>
+    <tr>
+        <th>film_id</th>
+        <th>title</th>
+        <th>description</th>
+        <th>release_year</th>
+        <th>language_id</th>
+        <th>rental_duration</th>
+        <th>rental_rate</th>
+        <th>length</th>
+        <th>replacement_cost</th>
+        <th>rating</th>
+        <th>last_update</th>
+        <th>special_features</th>
+        <th>fulltext</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="film : ${films}" th:object="${film}">
+        <td class="center" th:text="${film.film_id}"></td>
+        <td class="center" th:text="${film.title}"></td>
+        <td class="center" th:text="${film.description}"></td>
+        <td class="center" th:text="${film.release_year}"></td>
+        <td class="center" th:text="${film.language_id}"></td>
+        <td class="center" th:text="${film.rental_duration}"></td>
+        <td class="center" th:text="${film.rental_rate}"></td>
+        <td class="center" th:text="${film.length}"></td>
+        <td class="center" th:text="${film.replacement_cost}"></td>
+        <td class="center" th:text="${film.rating}"></td>
+        <td class="center" th:text="${film.last_update}"></td>
+        <td class="center" th:text="${film.special_features}"></td>
+        <td class="center" th:text="${film.fulltext}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

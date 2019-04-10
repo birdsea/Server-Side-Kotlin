@@ -1,0 +1,38 @@
+/**
+* タグ単位
+*/
+html {
+    font-family: "Noto Sans";
+}
+
+body {
+    background-color:#F5F5DC;
+}
+
+table {
+    font-size:8pt;
+    border-collapse: collapse;
+    border-spacing: 0;
+    background-color:white;
+}
+
+tr{
+    mergin:0px;
+}
+th {
+    color:#ffff00;
+    border: 1px solid black;
+    background-color:#20B2AA;
+}
+td {
+    border: 1px solid black;
+}
+
+/**
+* クラス単位
+*/
+.screen_title {
+    font-size: 20pt;
+    text-align: center;
+    color:#483D8B;
+}
