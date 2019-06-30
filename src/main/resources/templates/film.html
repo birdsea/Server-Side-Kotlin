@@ -1,18 +1,8 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/template :: layout(~{::title},~{::body/content()})}">
 <head>
-    <meta charset="UTF-8" />
-    <title>DVD Rental - Film</title>
-    <link th:href="@{/css/style.css}" rel="stylesheet" />
-    <script>
-    // LiveReload
-    document.write(
-        '<script src="http://' +
-        (location.host || 'localhost').split(':')[0] +
-        ':35729/livereload.js?snipver=1"></' +
-        'script>'
-    )
-    </script>
+    <title>Film</title>
 </head>
 <body>
 <br>

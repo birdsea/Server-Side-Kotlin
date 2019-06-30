@@ -1,7 +1,7 @@
 package io.github.birdsea.ServerSideKotlin.controller
 
 /**
- * FilmContrllerクラス
+ * StoreContrllerクラス
  */
 import io.github.birdsea.ServerSideKotlin.component.DbManager
 import org.springframework.stereotype.Controller
@@ -9,14 +9,14 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-open class FilmController {
-    @GetMapping("film")
-    fun film(model: Model): String {
+open class StoreController {
+    @GetMapping("store")
+    fun store(model: Model): String {
 
-        // DBからFilm情報を取得
-        var films = DbManager.selectFilm()
-        model.addAttribute("films", films)
+        // DBからStore情報を取得
+        var stores = DbManager.selectStore()
+        model.addAttribute("stores", stores)
 
-        return "film"
+        return "store"
     }
 }

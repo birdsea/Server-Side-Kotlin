@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{layout/template :: layout(~{::title},~{::body/content()})}">
+<head>
+    <title>Store</title>
+</head>
+<body>
+<br>
+<div class="screen_title"><b>Store List</b></div>
+<br>
+<table>
+    <thead>
+    <tr>
+        <th>id</th>
+        <th>country</th>
+        <th>city</th>
+        <th>address</th>
+        <th>address2</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="store : ${stores}" th:object="${store}">
+        <td class="center" th:text="${store.store_id}"></td>
+        <td class="center" th:text="${store.country}"></td>
+        <td class="center" th:text="${store.city}"></td>
+        <td class="center" th:text="${store.address}"></td>
+        <td class="center" th:text="${store.address2}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>
