@@ -14,11 +14,9 @@ import org.springframework.stereotype.Component
 object Aop {
     @Before("execution(* *..*Controller.*(..))")
     fun before() {
-        DbManager.startTransaction()
     }
 
     @After("execution(* *..*Controller.*(..))")
     fun after() {
-        DbManager.endTransaction()
     }
 }

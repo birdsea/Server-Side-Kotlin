@@ -9,7 +9,7 @@ import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.GetMapping
 
 @Controller
-class FilmController {
+open class FilmController {
     @GetMapping("")
     fun index(model: Model): String {
 

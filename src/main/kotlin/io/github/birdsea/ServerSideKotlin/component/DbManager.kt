@@ -5,81 +5,67 @@ package io.github.birdsea.ServerSideKotlin.component
  */
 
 import io.github.birdsea.ServerSideKotlin.bean.Film
+import jooq.tables.FilmTable.FILM
+import org.jooq.conf.Settings
+import org.jooq.impl.DSL
+import org.springframework.boot.context.properties.ConfigurationProperties
 import org.springframework.stereotype.Component
-import java.sql.*
-import kotlin.reflect.KMutableProperty
-import kotlin.reflect.KVisibility
-import kotlin.reflect.full.isSubtypeOf
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.full.starProjectedType
+
 
 @Component
+@ConfigurationProperties(prefix = "db")
 object DbManager {
-    //接続文字列
-    val url = "jdbc:postgresql://localhost:5432/dvdrental"
-    val user = "postgres"
-    val password = "postgres"
-
-    private var conn: Connection? = null
+    lateinit var url: String
+    lateinit var username: String
+    lateinit var password: String
 
     /**
      * トランザクション開始
      */
     fun startTransaction() {
-        conn = DriverManager.getConnection(url, user, password)
-        //自動コミットOFF
-        conn!!.autoCommit = false
     }
 
     /**
      * トランザクション終了
      */
     fun endTransaction() {
-        conn!!.close()
     }
 
     fun selectFilm(): MutableList<Film> {
-        var stmt: Statement? = null
-        var rset: ResultSet? = null
 
         val result = mutableListOf<Film>()
 
-        try {
+        val settings = Settings()
+        settings.setExecuteLogging(true)  // jOOQのログ出力を行うか
+        settings.withRenderFormatted(true) // SQL文の出力を見易い形にフォーマットするか
+        settings.withRenderSchema(false) // SQL文にスキーマを出力するか
+
+        DSL.using(
+                url,
+                username,
+                password
+        ).use { ctx ->
+
             //SELECT文の実行
-            stmt = conn!!.createStatement()
-            var sql = "SELECT * FROM FILM ORDER BY FILM_ID"
-            rset = stmt!!.executeQuery(sql)
-
-            //SELECT結果の受け取り
-            while (rset!!.next()) {
-                val meta = rset.metaData
-                val film = Film()
-                for (i in 1..meta.columnCount) {
-                    Film::class.memberProperties.filter { it.visibility == KVisibility.PUBLIC }
-                            .filter { it.returnType.isSubtypeOf(String::class.starProjectedType) }
-                            .filterIsInstance<KMutableProperty<*>>()
-                            .forEach {
-                                if (it.name.equals(meta.getColumnName(i))) {
-                                    when (meta.getColumnType(i)) {
-                                        java.sql.Types.DATE, java.sql.Types.TIME -> it.setter.call(film, rset.getDate(meta.getColumnName(i)))
-                                        java.sql.Types.TIMESTAMP -> it.setter.call(film, rset.getTimestamp(meta.getColumnName(i)))
-                                        else -> it.setter.call(film, rset.getString(meta.getColumnName(i)))
-                                    }
-                                }
-                            }
-                }
-                result += film
-            }
-
-        } catch (e: SQLException) {
-            e.printStackTrace()
-        } finally {
-            try {
-                rset!!.close()
-                stmt!!.close()
-            } catch (e: SQLException) {
-                e.printStackTrace()
-            }
+            val film = FILM
+            ctx.select().from(film).orderBy(film.FILM_ID)
+                    .forEach {
+                        result.add(Film(
+                                it[film.FILM_ID].toString(),
+                                it[film.TITLE],
+                                it[film.DESCRIPTION],
+                                it[film.RELEASE_YEAR].toString(),
+                                it[film.LANGUAGE_ID].toString(),
+                                it[film.RENTAL_DURATION].toString(),
+                                it[film.RENTAL_RATE].toString(),
+                                it[film.LENGTH].toString(),
+                                it[film.REPLACEMENT_COST].toString(),
+                                it[film.RATING].toString(),
+                                it[film.LAST_UPDATE],
+                                it[film.SPECIAL_FEATURES].toString(),
+                                it[film.FULLTEXT].toString()))
+                    }
+            ctx.close()
         }
         return result
     }

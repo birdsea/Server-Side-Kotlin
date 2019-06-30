@@ -1,0 +1,136 @@
+plugins {
+	id("application")
+	id("idea")
+	id "org.jetbrains.kotlin.jvm" version "$kotlinVersion"
+	id "org.jetbrains.kotlin.kapt" version "$kotlinVersion"
+	id "org.jetbrains.kotlin.plugin.allopen" version "$kotlinVersion"
+	id("org.springframework.boot") version "2.2.0.RELEASE"
+	id("io.spring.dependency-management") version "1.0.8.RELEASE"
+	id("nu.studer.jooq") version "4.1"
+	id "com.github.johnrengelman.shadow" version "5.0.0"
+}
+
+group = "io.github.birdsea"
+version = "0.0.1-SNAPSHOT"
+java.sourceCompatibility = JavaVersion.VERSION_11
+
+mainClassName = 'io.github.birdsea.ServerSideKotlin.ServerSideKotlinApplicationKt'
+
+configurations {
+	// for dependencies that are needed for development only
+	developmentOnly
+}
+
+shadowJar {
+	mergeServiceFiles()
+}
+
+jar {
+	archiveBaseName = "ServerSideKotlin"
+	archiveFileName = "${archiveBaseName}.jar"
+	version = "1.0.0"
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+	implementation("org.springframework.boot:spring-boot-starter-web")
+	implementation("org.springframework.boot:spring-boot-starter-aop")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
+	developmentOnly("org.springframework.boot:spring-boot-devtools")
+	runtimeOnly("org.postgresql:postgresql")
+	testImplementation("org.springframework.boot:spring-boot-starter-test") {
+		exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+	}
+	implementation("org.jooq:jooq:$jooqVersion")
+	implementation( "org.jooq:jooq-meta:$jooqVersion")
+	implementation( "org.jooq:jooq-codegen:$jooqVersion")
+	jooqRuntime( "org.postgresql:postgresql:$postgresqlDriverVersion")
+
+}
+
+run.classpath += configurations.developmentOnly
+run.jvmArgs('-noverify', '-XX:TieredStopAtLevel=1', '-Dcom.sun.management.jmxremote')
+
+idea {
+	module {
+		inheritOutputDirs = false
+		outputDir = file("$buildDir/classes/kotlin/main")
+	}
+}
+
+configurations {
+	// for dependencies that are needed for development only
+	developmentOnly
+}
+
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = '11'
+		//Will retain parameter names for Java reflection
+		javaParameters = true
+	}
+}
+
+compileTestKotlin {
+	kotlinOptions {
+		jvmTarget = '11'
+		javaParameters = true
+	}
+}
+
+jooq {
+	version = "$jooqVersion"
+	edition = nu.studer.gradle.jooq.JooqEdition.OSS
+//	generateSchemaSourceOnCompilation = true
+	tables(sourceSets.main) {
+		jdbc {
+			driver = 'org.postgresql.Driver'
+			url = 'jdbc:postgresql://localhost:5432/dvdrental'
+			user = 'postgres'
+			password = 'postgres'
+		}
+		generator {
+			database {
+				name = 'org.jooq.meta.postgres.PostgresDatabase'
+				inputSchema = 'public'
+			}
+			strategy {
+				name = null
+				matchers {
+					tables {
+						table {
+							// Tableクラスにsuffixを指定
+							tableClass {
+								transform = 'PASCAL'
+								expression = '\$0_Table'
+							}
+						}
+					}
+				}
+			}
+			generate() {
+				relations = true
+				deprecated = false
+				records = true
+				immutablePojos = false
+				fluentSetters = true
+				daos = true
+				pojosEqualsAndHashCode = true
+			}
+			// 出力先
+			target {
+				packageName = 'jooq'
+				directory = 'src/main/java'
+			}
+		}
+	}
+}
+// jOOQの生成をさせない
+project.tasks.getByName('compileKotlin').dependsOn -= 'generateQiJooqSchemaSource'
+project.tasks.getByName('compileJava').dependsOn -= 'generateQiJooqSchemaSource'
