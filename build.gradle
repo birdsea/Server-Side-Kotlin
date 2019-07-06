@@ -43,11 +43,10 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.springframework.boot:spring-boot-devtools")
-	runtimeOnly("org.postgresql:postgresql")
+	runtimeOnly("org.postgresql:postgresql:$postgresqlDriverVersion")
 	testImplementation("org.springframework.boot:spring-boot-starter-test") {
 		exclude group: "org.junit.vintage", module: "junit-vintage-engine"
 	}
-	implementation("org.springframework.boot:spring-boot-starter-jooq")
 	implementation("org.jooq:jooq:$jooqVersion")
 	implementation( "org.jooq:jooq-meta:$jooqVersion")
 	implementation( "org.jooq:jooq-codegen:$jooqVersion")
