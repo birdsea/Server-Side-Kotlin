@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component
 
 
 @Component
-@ConfigurationProperties(prefix = "db")
+@ConfigurationProperties(prefix = "spring.datasource")
 object DbManager {
     lateinit var url: String
     lateinit var username: String

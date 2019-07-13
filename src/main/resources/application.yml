@@ -1,0 +1,5 @@
+SPRING:
+  DATASOURCE:
+    URL: jdbc:postgresql://localhost:5432/dvdrental
+    USERNAME: postgres
+    PASSWORD: postgres
