@@ -1,0 +1,60 @@
+version: 2
+jobs:
+  build:
+    environment:
+      # Configure the JVM and Gradle to avoid OOM errors
+      _JAVA_OPTIONS: "-Xmx3g"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+    docker:
+      - image: circleci/openjdk:11.0.3-jdk-stretch
+        environment:
+          DATABASE_URL: postgresql://postgres@localhost/
+          DATABASE_URL_DB: postgresql://postgres@localhost/dvdrental
+      - image: circleci/postgres:12-alpine
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - "5432:5432"
+    steps:
+      - checkout
+      - run: mkdir -p workspace
+      - run: sudo apt-get update
+      - run: sudo apt-get install postgresql-client-9.6
+      - run: |
+          psql \
+          -d $DATABASE_URL \
+          -p 5432 \
+          -U postgres \
+          -c "create database dvdrental;"
+      - run: |
+          pg_restore \
+          -d $DATABASE_URL_DB \
+          -p 5432 \
+          -U postgres \
+          ./docker/db/script/dvdrental.tar
+      - restore_cache:
+          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+      - restore_cache:
+          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+      - run:
+          name: chmod permissions
+          command: chmod +x ./gradlew
+      - run:
+          name: Install dependencies
+          command: ./gradlew generateTablesJooqSchemaSource
+      - run:
+          name: Install dependencies
+          command: ./gradlew build
+      - save_cache:
+          paths:
+            - ~/.gradle/wrapper
+          key: v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
+      - save_cache:
+          paths:
+            - ~/.gradle/caches
+          key: v1-gradle-cache-{{ checksum "build.gradle" }}
+      - persist_to_workspace:
+          root: workspace
+          paths:
+            - .
