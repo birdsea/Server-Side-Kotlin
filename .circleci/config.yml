@@ -1,15 +1,11 @@
-version: 2.0
+version: 2.1
 
-#orbs:
-#  aws-ecr: circleci/aws-ecr@6.9.1
-#  aws-ecs: circleci/aws-ecs@1.2.0
+orbs:
+  aws-ecr: circleci/aws-ecr@6.9.1
+  aws-ecs: circleci/aws-ecs@1.2.0
 
-jobs:
-  build:
-    environment:
-      # Configure the JVM and Gradle to avoid OOM errors
-      _JAVA_OPTIONS: "-Xmx3g"
-      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+executors:
+  my-executor:
     docker:
       - image: circleci/openjdk:11.0.3-jdk-stretch
         environment:
@@ -19,8 +15,13 @@ jobs:
         environment:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-        ports:
-          - "5432:5432"
+jobs:
+  build:
+    environment:
+      # Configure the JVM and Gradle to avoid OOM errors
+      _JAVA_OPTIONS: "-Xmx3g"
+      GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.workers.max=2"
+    executor: my-executor
     steps:
       - checkout
       - run: mkdir -p workspace
@@ -60,27 +61,25 @@ jobs:
             - ~/.gradle/caches
           key: v1-gradle-cache-{{ checksum "build.gradle" }}
       - persist_to_workspace:
-          root: workspace
+          root: .
           paths:
-            - .
-#  image-build-and-deploy:
-#    steps:
-#      - aws-ecr/build-and-push-image:
-#          dockerfile: Dockerfile
-#          repo: ${MY_APP_PREFIX}
-#          tag: '${CIRCLE_SHA1}'
-#      - asws-ecs/deploy-service-update:
-#          requires:
-#            - aws-ecr/build-and-push-image
-#          family: '${MY_APP_PREFIX}-service'
-#          cluster-name: '${MY_APP_PREFIX}-cluster'
-#          container-image-name-updates: 'container=${MY_APP_PREFIX}-service,tag=${CIRCLE_SHA1}'
+            - ./build/libs/*
 
 workflows:
   version: 2
   build-and-deploy:
     jobs:
       - build
-#      - image-build-and-deploy:
-#          requires:
-#            - build
+      - aws-ecr/build-and-push-image:
+          requires:
+            - build
+          dockerfile: Dockerfile
+          attach-workspace : true
+          repo: ${MY_APP_PREFIX}
+          tag: '${CIRCLE_SHA1}'
+      - aws-ecs/deploy-service-update:
+          requires:
+            - aws-ecr/build-and-push-image
+          family: '${MY_APP_PREFIX}-service'
+          cluster-name: '${MY_APP_PREFIX}-cluster'
+          container-image-name-updates: 'container=${MY_APP_PREFIX}-service,tag=${CIRCLE_SHA1}'
